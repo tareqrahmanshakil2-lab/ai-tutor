@@ -178,7 +178,7 @@ with st.sidebar:
         # মডেল নির্বাচন
         selected_model = st.selectbox(
             "মডেল বেছে নাও:",
-            ["gemini-2.5-flash", "gemini-2.5-pro"],
+            ["gemini-2.8-flash", "gemini-2.5-pro"],
             index=0,
             help="Flash দ্রুত উত্তর দেয়, আর Pro জটিল গণিত ও লজিক্যাল সমস্যার গভীর সমাধান দেয়।"
         )
