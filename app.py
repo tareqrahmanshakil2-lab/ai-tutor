@@ -45,7 +45,7 @@ if prompt or uploaded_file:
   else:
     try:
       # Using the correct working model
-      model = genai.GenerativeModel("gemini-1.5-flash")
+      model = genai.GenerativeModel("gemini-3.8-flash")
 
       content_to_send = []
       if prompt:
