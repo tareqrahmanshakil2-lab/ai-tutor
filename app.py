@@ -31,15 +31,15 @@ SYSTEM_INSTRUCTION = """
 # ==========================================
 st.set_page_config(page_title="Admission AI Examiner & Solver", page_icon="🎓", layout="wide")
 
-st.title("🎓 ইঞ্জিনিয়ারিং অ্যাডমিশন এআই টিউটর ও এক্সামিনার")
-st.write("যেকোনো জটিল ম্যাথ/ফিজিক্স প্রশ্ন করো অথবা হাতের লেখা খাতার ছবি আপলোড করে শিক্ষকের মতো খাতা চেক করিয়ে নাও!")
+st.title("🎓 ShakIl's Tutor")
+st.write("Strong AI")
 
 with st.sidebar:
     st.header("⚙️ সেটিংস")
     api_key = st.text_input("Gemini API Key দাও:", type="password", value=os.environ.get("GEMINI_API_KEY", ""))
     st.markdown("[এখান থেকে ফ্রি Gemini API Key নাও](https://aistudio.google.com/app/apikey)")
     
-    st.subheader("📸 খাতার ছবি আপলোড করো")
+    st.subheader("📸  ছবি আপলোড ")
     uploaded_file = st.file_uploader("হাতের লেখা খাতার বা প্রশ্নের ছবি (JPG/PNG)", type=["jpg", "jpeg", "png"])
     if uploaded_file:
         image = Image.open(uploaded_file)
@@ -56,7 +56,7 @@ user_prompt = st.chat_input("প্রশ্নটি এখানে লেখ�
 
 if user_prompt:
     if not api_key:
-        st.error("দয়া করে বাম পাশের সাইডবারে তোমার Gemini API Key টি দাও!")
+        st.error(" Gemini API Key টি দাও!")
     else:
         st.session_state.messages.append({"role": "user", "content": user_prompt})
         with st.chat_message("user"):
@@ -73,7 +73,7 @@ if user_prompt:
                         contents.append(img)
 
                     response = client.models.generate_content(
-                        model="gemini-2.5-pro",
+                        model="gemini-2.5-flash",
                         contents=contents,
                         config=types.GenerateContentConfig(
                             system_instruction=SYSTEM_INSTRUCTION,
