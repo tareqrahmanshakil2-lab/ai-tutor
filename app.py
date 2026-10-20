@@ -32,7 +32,7 @@ SYSTEM_INSTRUCTION = """
 st.set_page_config(page_title="Admission AI Examiner & Solver", page_icon="🎓", layout="wide")
 
 st.title("🎓 ShakIl's Tutor")
-st.write("Strong AI")
+st.write("It created by Tarek Rahman Shakil")
 
 with st.sidebar:
     st.header("⚙️ সেটিংস")
