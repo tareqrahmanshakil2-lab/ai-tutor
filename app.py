@@ -17,8 +17,10 @@ HOME_KEY_FILE = str(Path.home() / ".gemini_personal_api_key.txt")
 
 MODEL_OPTIONS = [
     "gemini-3.8-flash",
+    "gemini-2.5-flash",
+    "gemini-2.0-flash",
     "gemini-1.5-flash",
-    "gemini-1.5-pro",   "gemini-3.8-flash", 
+    "gemini-1.5-pro",
 ]
 
 # ==============================================================================
@@ -142,7 +144,7 @@ def load_workspace():
                         "custom_instruction",
                         "তুমি একজন অত্যন্ত বুদ্ধিমান, বন্ধুসুলভ এবং দক্ষ AI সহকারী ও শিক্ষক। বাংলায় এবং ব্যবহারকারীর কাঙ্ক্ষিত ভাষায় স্পষ্ট, নির্ভুল ও ধাপে ধাপে উত্তর দাও।",
                     )
-                    data.setdefault("selected_model", "gemini-2.0-flash")
+                    data.setdefault("selected_model", "gemini-3.8-flash")
                     data.setdefault("voice_auto_speak", True)
                     data.setdefault("voice_lang", "bn-BD")
                     data.pop("saved_api_key", None)
@@ -174,7 +176,7 @@ def load_workspace():
             {"task": "Review daily study & coding goals", "done": False}
         ],
         "custom_instruction": "তুমি একজন অত্যন্ত বুদ্ধিমান, বন্ধুসুলভ এবং দক্ষ AI সহকারী ও শিক্ষক। বাংলায় এবং ব্যবহারকারীর কাঙ্ক্ষিত ভাষায় স্পষ্ট, নির্ভুল ও ধাপে ধাপে উত্তর দাও।",
-        "selected_model": "gemini-2.0-flash",
+        "selected_model": "gemini-3.8-flash",
         "voice_auto_speak": True,
         "voice_lang": "bn-BD",
     }
@@ -191,7 +193,7 @@ def save_workspace(data):
 
 
 def load_personal_api_key() -> str:
-    DIRECT_HARDCODED_KEY = ""  # চাইলে এখানে আপনার এপিআই কি বসাতে পারেন
+    DIRECT_HARDCODED_KEY = ""
     if is_valid_key_string(DIRECT_HARDCODED_KEY):
         return DIRECT_HARDCODED_KEY.strip()
 
@@ -283,13 +285,13 @@ def start_new_chat(notebook_name=None, mode=None):
 
 
 # ==============================================================================
-# ৪. জেমিনি ইঞ্জিন (ডায়নামিক মডেল ডিটেকশন সহ)
+# ৪. জেমিনি ইঞ্জিন (ডায়নামিক মডেল ডিটেকশন সহ)
 # ==============================================================================
 def run_flash_engine(prompt_parts):
     active_key = st.session_state.api_key or load_personal_api_key()
     if not is_valid_key_string(active_key):
         raise ValueError(
-            "আপনার ব্যক্তিগত Gemini API Key পাওয়া যায়নি। সাইডবারে 🔑 বাটনে ক্লিক করে কি (Key) সেভ করুন।"
+            "আপনার ব্যক্তিগত Gemini API Key পাওয়া যায়নি। সাইডবারে 🔑 বাটনে ক্লিক করে কি (Key) সেভ করুন।"
         )
 
     genai.configure(api_key=active_key)
@@ -300,7 +302,13 @@ def run_flash_engine(prompt_parts):
             if "generateContent" in m.supported_generation_methods:
                 available_models.append(m.name.replace("models/", ""))
 
-        preferred_order = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
+        preferred_order = [
+            "gemini-3.8-flash",
+            "gemini-2.5-flash",
+            "gemini-2.0-flash",
+            "gemini-1.5-flash",
+            "gemini-1.5-pro",
+        ]
         chosen_model = None
 
         for pref in preferred_order:
@@ -312,14 +320,20 @@ def run_flash_engine(prompt_parts):
             chosen_model = available_models[0]
 
         if not chosen_model:
-            chosen_model = "gemini-1.5-flash"
+            chosen_model = "gemini-3.8-flash"
 
         model = genai.GenerativeModel(chosen_model)
         response = model.generate_content(prompt_parts)
         if response and hasattr(response, "text") and response.text:
             return response.text
     except Exception as err:
-        for model_name in ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]:
+        for model_name in [
+            "gemini-3.8-flash",
+            "gemini-2.5-flash",
+            "gemini-2.0-flash",
+            "gemini-1.5-flash",
+            "gemini-1.5-pro",
+        ]:
             try:
                 model = genai.GenerativeModel(model_name)
                 response = model.generate_content(prompt_parts)
@@ -331,7 +345,7 @@ def run_flash_engine(prompt_parts):
 
 
 # ==============================================================================
-# ৫. ব্রাউজার ভয়েস স্পিকার (TTS)
+# ৫. ব্রাউজার ভয়েস স্পিকার (TTS)
 # ==============================================================================
 def render_voice_speaker(
     text_to_speak: str, lang_code: str = "bn-BD", auto_play: bool = False
@@ -499,9 +513,7 @@ if st.session_state.active_nav == "VoiceTutor":
 elif st.session_state.active_nav == "Customize":
     st.subheader("⚙️ Customize & Settings")
     ws["selected_model"] = st.selectbox(
-        "Select AI Model:",
-        ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"],
-        index=0,
+        "Select AI Model:", MODEL_OPTIONS, index=0
     )
     ws["custom_instruction"] = st.text_area(
         "Custom Instructions / System Prompt:", value=ws["custom_instruction"]
