@@ -16,7 +16,7 @@ LOCAL_KEY_FILE = ".gemini_flash_key.txt"
 HOME_KEY_FILE = str(Path.home() / ".gemini_personal_api_key.txt")
 
 MODEL_OPTIONS = [
-    "gemini-2.0-flash",
+    "gemini-3.8-flash",
     "gemini-1.5-flash",
     "gemini-1.5-pro",
 ]
