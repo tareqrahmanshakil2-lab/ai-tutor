@@ -9,18 +9,16 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 # ==============================================================================
-# ১. কনফিগারেশন ও মডেল অপশন (সঠিক ও সমর্থিত জেমিনি মডেলসমূহ)
+# ১. কনফিগারেশন ও মডেল অপশন
 # ==============================================================================
 DATA_FILE = "gemini_workspace_data.json"
 LOCAL_KEY_FILE = ".gemini_flash_key.txt"
 HOME_KEY_FILE = str(Path.home() / ".gemini_personal_api_key.txt")
 
-# জেমিনির বর্তমান ও কার্যকরী মডেল লিস্ট
 MODEL_OPTIONS = [
-    "gemini-1.5-flash",
     "gemini-2.0-flash",
+    "gemini-1.5-flash",
     "gemini-1.5-pro",
-    "gemini-1.5-flash-latest",
 ]
 
 # ==============================================================================
@@ -144,14 +142,12 @@ def load_workspace():
                         "custom_instruction",
                         "তুমি একজন অত্যন্ত বুদ্ধিমান, বন্ধুসুলভ এবং দক্ষ AI সহকারী ও শিক্ষক। বাংলায় এবং ব্যবহারকারীর কাঙ্ক্ষিত ভাষায় স্পষ্ট, নির্ভুল ও ধাপে ধাপে উত্তর দাও।",
                     )
-                    data.setdefault("selected_model", "gemini-1.5-flash")
+                    data.setdefault("selected_model", "gemini-2.0-flash")
                     data.setdefault("voice_auto_speak", True)
                     data.setdefault("voice_lang", "bn-BD")
                     data.pop("saved_api_key", None)
                     return data
         except Exception:
-            import uuid
-
             pass
 
     import uuid
@@ -178,7 +174,7 @@ def load_workspace():
             {"task": "Review daily study & coding goals", "done": False}
         ],
         "custom_instruction": "তুমি একজন অত্যন্ত বুদ্ধিমান, বন্ধুসুলভ এবং দক্ষ AI সহকারী ও শিক্ষক। বাংলায় এবং ব্যবহারকারীর কাঙ্ক্ষিত ভাষায় স্পষ্ট, নির্ভুল ও ধাপে ধাপে উত্তর দাও।",
-        "selected_model": "gemini-1.5-flash",
+        "selected_model": "gemini-2.0-flash",
         "voice_auto_speak": True,
         "voice_lang": "bn-BD",
     }
@@ -195,8 +191,7 @@ def save_workspace(data):
 
 
 def load_personal_api_key() -> str:
-    # চাইলে সরাসরি আপনার এপিআই কি এখানে কোডের ভেতর বসিয়ে দিতে পারেন (ব্যক্তিগত ব্যবহারের জন্য)
-    DIRECT_HARDCODED_KEY = ""  # <-- এখানে আপনার এপিআই কি বসাতে পারেন যদি চান
+    DIRECT_HARDCODED_KEY = ""  # চাইলে এখানে আপনার এপিআই কি বসাতে পারেন
     if is_valid_key_string(DIRECT_HARDCODED_KEY):
         return DIRECT_HARDCODED_KEY.strip()
 
@@ -288,7 +283,7 @@ def start_new_chat(notebook_name=None, mode=None):
 
 
 # ==============================================================================
-# ৪. জেমিনি ইঞ্জিন (অটো-ফলব্যাক সহ)
+# ৪. জেমিনি ইঞ্জিন (ডায়নামিক মডেল ডিটেকশন সহ)
 # ==============================================================================
 def run_flash_engine(prompt_parts):
     active_key = st.session_state.api_key or load_personal_api_key()
@@ -298,23 +293,41 @@ def run_flash_engine(prompt_parts):
         )
 
     genai.configure(api_key=active_key)
-    preferred_model = ws.get("selected_model", "gemini-1.5-flash")
-    candidate_models = [preferred_model] + [
-        m for m in MODEL_OPTIONS if m != preferred_model
-    ]
-    last_err = None
 
-    for model_name in candidate_models:
-        try:
-            model = genai.GenerativeModel(model_name)
-            response = model.generate_content(prompt_parts)
-            if response and hasattr(response, "text") and response.text:
-                return response.text
-        except Exception as err:
-            last_err = err
-            continue
+    try:
+        available_models = []
+        for m in genai.list_models():
+            if "generateContent" in m.supported_generation_methods:
+                available_models.append(m.name.replace("models/", ""))
 
-    raise RuntimeError(f"Gemini API Error: {last_err}")
+        preferred_order = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
+        chosen_model = None
+
+        for pref in preferred_order:
+            if pref in available_models:
+                chosen_model = pref
+                break
+
+        if not chosen_model and available_models:
+            chosen_model = available_models[0]
+
+        if not chosen_model:
+            chosen_model = "gemini-1.5-flash"
+
+        model = genai.GenerativeModel(chosen_model)
+        response = model.generate_content(prompt_parts)
+        if response and hasattr(response, "text") and response.text:
+            return response.text
+    except Exception as err:
+        for model_name in ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]:
+            try:
+                model = genai.GenerativeModel(model_name)
+                response = model.generate_content(prompt_parts)
+                if response and hasattr(response, "text") and response.text:
+                    return response.text
+            except Exception:
+                continue
+        raise RuntimeError(f"Gemini API Error: {err}")
 
 
 # ==============================================================================
@@ -487,10 +500,8 @@ elif st.session_state.active_nav == "Customize":
     st.subheader("⚙️ Customize & Settings")
     ws["selected_model"] = st.selectbox(
         "Select AI Model:",
-        MODEL_OPTIONS,
-        index=MODEL_OPTIONS.index(ws.get("selected_model", "gemini-1.5-flash"))
-        if ws.get("selected_model") in MODEL_OPTIONS
-        else 0,
+        ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"],
+        index=0,
     )
     ws["custom_instruction"] = st.text_area(
         "Custom Instructions / System Prompt:", value=ws["custom_instruction"]
@@ -510,9 +521,7 @@ elif st.session_state.active_nav == "Library":
     st.stop()
 
 # --- ডিফল্ট চ্যাট স্ক্রিন (New chat) ---
-st.markdown(
-    f'<h1 class="welcome-title">Hello, Shakil</h1>', unsafe_allow_html=True
-)
+st.markdown(f'<h1 class="welcome-title">Hello, Shakil</h1>', unsafe_allow_html=True)
 
 for m in current_chat["messages"]:
     with st.chat_message(m["role"]):
