@@ -403,8 +403,8 @@ with st.sidebar:
         start_new_chat()
         st.rerun()
 
-    if st.button("🎙️ Live Voice & Tutor", use_container_width=True):
-        st.session_state.active_nav = "VoiceTutor"
+    if st.button("🎙️ Live Voice ", use_container_width=True):
+        st.session_state.active_nav = "Voice"
         st.rerun()
 
     if st.button("🗂️ Library", use_container_width=True):
@@ -468,7 +468,7 @@ def process_user_submission(
         ]
     )
 
-    full_prompt = f"{ws['custom_instruction']}\n{history_context}\n প্রশ্ন: {prompt_text}"
+    full_prompt = f"{ws['custom_instruction']}\n{history_context}\n Questions: {prompt_text}"
 
     payload = [full_prompt]
     if image_obj is not None:
@@ -485,19 +485,19 @@ def process_user_submission(
 # ==============================================================================
 # ৮. নেভিগেশন পেজ রাউটিং
 # ==============================================================================
-if st.session_state.active_nav == "VoiceTutor":
-    st.subheader("🎙️ Live Voice & Language Tutor")
+if st.session_state.active_nav == "Voice":
+    st.subheader("🎙️")
     tutor_mic = st.audio_input("কথা বলতে এখানে ক্লিক করুন:")
     if tutor_mic is not None:
         audio_data = tutor_mic.read()
         audio_hash = hashlib.md5(audio_data).hexdigest()
         if audio_hash != st.session_state.last_processed_audio_hash:
             st.session_state.last_processed_audio_hash = audio_hash
-            with st.spinner("শোনা হচ্ছে..."):
+            with st.spinner("Shakil is Listening..."):
                 try:
                     process_user_submission(
-                        "🎤 *[ভয়েস মেসেজ]*",
-                        "আমার কথা শুনে প্রাসঙ্গিক উত্তর ও উচ্চারণ ঠিক করে দাও।",
+                        "🎤 *[Voice]*",
+                        "সুন্দর করে ব্যাখ্যা কর এবং সত্যতা যাচাই করুন।",
                         audio_bytes=audio_data,
                     )
                 except Exception as e:
