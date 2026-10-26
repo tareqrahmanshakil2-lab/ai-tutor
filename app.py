@@ -27,7 +27,7 @@ MODEL_OPTIONS = [
 # ২. পেজ কনফিগারেশন ও ডার্ক থিম সিএসএস ডিজাইন
 # ==============================================================================
 st.set_page_config(
-    page_title="Gemini Workspace AI",
+    page_title="Shakil Workspace AI",
     page_icon="✨",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -543,7 +543,7 @@ user_input = st.chat_input("Ask Gemini in Bangla or English, or use mic...")
 if user_input:
     with st.chat_message("user"):
         st.markdown(user_input)
-    with st.spinner("Gemini ভাবছে..."):
+    with st.spinner("Shakil is Thinking..."):
         try:
             process_user_submission(user_input, user_input)
             st.rerun()
